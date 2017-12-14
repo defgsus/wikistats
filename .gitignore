@@ -1,0 +1,54 @@
+# libreoffice
+.~lock*.o*
+
+# Django App specifics
+/static/
+media/
+settings_local.py
+
+
+# Python & VirtualEnv
+/env/
+/venv/
+*.py[cod]
+
+# IntelliJ IDEA Project
+# compare https://intellij-support.jetbrains.com/hc/en-us/articles/206544839-How-to-manage-projects-under-Version-Control-Systems
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/libraries
+.idea/gradle.xml
+/.idea/
+
+
+# Node modules
+/node_modules/
+
+#sass project files
+.sass-cache/
+
+db.sqlite3*
+
+# System Junk
+*.so
+*~
+*.swp
+*.swo
+*.diff
+*.err
+*.orig
+*.log
+*.rej
+*.vi
+.DS_Store
+Thumbs.db
+.cache
+.project
+.settings
+_notes
+dwsync.xml
+*.iml
+
+
+# local settings
+settings_local.py

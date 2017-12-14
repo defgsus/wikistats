@@ -1,0 +1,58 @@
+<!doctype html
+    PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+{% load static %}
+<html>
+    <head profile="http://www.w3.org/2005/10/profile">
+        <meta charset="utf-8">
+        {% if page_title %}
+            <title>{{ page_title }}</title>
+        {% endif %}
+        <link href="{% static 'wikiviews/jquery-ui.min.css' %}" rel="stylesheet" type="text/css" />
+        <link href="{% static 'wikiviews/bokeh-0.12.4.min.css' %}" rel="stylesheet" type="text/css" />
+        <link href="{% static 'wikiviews/stylesheet.css' %}" rel="stylesheet" type="text/css" />
+        <script type="text/javascript" src="{% static 'wikiviews/bokeh-0.12.4.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'wikiviews/jquery-3.1.1.min.js' %}"></script>
+        <script type="text/javascript" src="{% static 'wikiviews/jquery-ui.min.js' %}"></script>
+        {% for c in css %}
+            <link href="{% static c %}" rel="stylesheet" type="text/css" />
+        {% endfor %}
+        {% for c in js %}
+            <script src="{% static c %}"></script>
+        {% endfor %}
+    </head>
+
+    <body>
+        <div class="page-content">
+
+            {% if developer %}
+                <div class="developer">{{ developer|safe }}</div>
+            {% endif %}
+
+            {% if help %}
+                <p class="help-button button">help</p>
+                <div class="help-container"><hr/>{{ help|safe }}</div>
+                <hr/>
+            {% endif %}
+
+            {% if error %}
+            <div class="error">{{ error|safe }}</div>
+            {% endif %}
+
+            {% block content %}
+                {{ content|safe }}
+            {% endblock %}
+        </div>
+
+        {% if help %}
+        <script type="text/javascript">
+            $(function() {
+                $(".help-container").hide();
+                $(".help-button").click(function(event) {
+                    $(".help-container").toggle("slow");
+                });
+            });
+        </script>
+        {% endif %}
+    </body>
+</html>
