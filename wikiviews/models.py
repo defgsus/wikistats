@@ -33,14 +33,19 @@ class WikiPageviews(models.Model):
     def views_per_day(self):
         return [int(x) for x in self.per_yearday.split(",")]
 
-    def views_decorator(self):
+    def views_decorator(self, transform=None):
+        import numpy as np
         NUM_DAYS = 3
         views = self.views_per_day()
+        if transform is not None:
+            views = transform(views)
         views_av = [0] * ((len(views)+NUM_DAYS-1) // NUM_DAYS)
         for i, v in enumerate(views):
             views_av[i//NUM_DAYS] += v
-        max_views = max(views_av)
-        max_views = max(1, max_views)
+        min_views, max_views = min(views_av), max(views_av)
+        if min_views > 0:
+            min_views = min_views * 2 // 3
+        max_views = max(min_views+1, max_views)
         html = '<div>'
         start_ord = datetime.date(self.year, 1, 1).toordinal()
         for i, v in enumerate(views_av):
@@ -52,7 +57,8 @@ class WikiPageviews(models.Model):
             html += '<span style="display: inline-block; position: relative; ' \
                     'width:5px; height: 48px; margin-right: 1px; background: #79aec8;" ' \
                     'title="%s">' % title
-            html += '<span style="display: block; height: %s%%; background: #eee">' % round(100. - float(v) / max_views * 100., 1)
+            html += '<span style="display: block; height: %s%%; background: #eee">' % round(
+                        100. - (float(v) - min_views) / (max_views - min_views) * 100., 1)
             html += '</span></span>'
         html += '</div>'
         return html

@@ -7,7 +7,39 @@
     <label for="article-input">article to compare</label>
     <input type="text" id="article-input" name="article" value="{{ term.name }}" />
     <input type="submit" value="go" />
+    <br/>
+    <label for="cb-transform">transform: </label>
+    <select id="cb-transform" name="transform">
+        {% for t in transforms %}
+            <option value="{{t.0}}" {% if current_transform == t.0 %}selected{% endif %}>{{ t.1 }}</option>
+        {% endfor %}
+    </select>
 </form>
+
+<hr/>
+
+<table style="border: 1px solid black;">
+    <tr>
+        <td>article</td>
+        <td>views per year</td>
+        <td>correlation</td>
+    </tr>
+    {% for a in correlations %}
+    <tr>
+        <td style="max-width: 270px">
+            (<a href="{{ a.url }}" target="_blank" title="{{ a.desc }}">W</a>)
+            (<a href="{{ a.corr_url }}" title="correlate from here">C</a>)
+            {{ a.name }}
+        </td>
+        <td>{{ a.count }}</td>
+        <td>{{ a.correlation }}</td>
+        <!--<td><a href="{{ a.url }}" target="_blank">{{ a.url }}</a></td>-->
+        <td>{{ a.views_decorator|safe }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
 
 <script>
     $(function() {
@@ -29,26 +61,5 @@
         });
     });
 </script>
-
-<hr/>
-
-<table style="border: 1px solid black;">
-    <tr>
-        <td>article</td>
-        <td>views per year</td>
-        <td>correlation</td>
-    </tr>
-    {% for a in correlations %}
-    <tr>
-        <td>{{ a.name }}</td>
-        <td>{{ a.count }}</td>
-        <td>{{ a.correlation }}</td>
-        <!--<td><a href="{{ a.url }}" target="_blank">{{ a.url }}</a></td>-->
-        <td>{{ a.views_decorator|safe }}</td>
-    </tr>
-    {% endfor %}
-</table>
-
-
 
 {% endblock %}
