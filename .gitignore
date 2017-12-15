@@ -5,6 +5,7 @@
 /static/
 media/
 settings_local.py
+credentials.py
 
 
 # Python & VirtualEnv

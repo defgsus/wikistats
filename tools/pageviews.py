@@ -5,6 +5,7 @@ import json
 import datetime
 import requests
 
+from .credentials import CONTACT_EMAIL
 
 def get_pageviews_daily(year, article,
                         project="de.wikipedia.org", access="all-access", agent="user"):
@@ -12,7 +13,7 @@ def get_pageviews_daily(year, article,
           "%s/%s/%s/%s/daily/%s/%s" % (project, access, agent, article, "%s0101" % year, "%s1231" % year)
 
     ret = [0] * 366
-    res = requests.get(url)
+    res = requests.get(url, headers={"User-Agent": CONTACT_EMAIL})
     data = json.loads(res.content)
     start_o = datetime.date(year, 1, 1).toordinal()
     if "items" in data:

@@ -4,15 +4,21 @@ from __future__ import unicode_literals
 import json
 import requests
 
+from .credentials import CONTACT_EMAIL
+
 
 def opensearch(term, limit=10):
     url = "https://de.wikipedia.org/w/api.php"
-    res = requests.get(url, params={
-        "action": "opensearch",
-        "format": "json",
-        "limit": limit,
-        "search": term,
-    })
+    res = requests.get(
+        url,
+        headers={"User-Agent": CONTACT_EMAIL},
+        params={
+            "action": "opensearch",
+            "format": "json",
+            "limit": limit,
+            "search": term,
+        }
+    )
     data = json.loads(res.content)
     return [{
         "name": data[1][i],
