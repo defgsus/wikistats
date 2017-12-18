@@ -35,10 +35,10 @@ class WikiPageviews(models.Model):
 
     def views_decorator(self, transform=None):
         import numpy as np
-        NUM_DAYS = 3
         views = self.views_per_day()
         if transform is not None:
             views = transform(views)
+        NUM_DAYS = 3 if len(views) > 180 else 1
         views_av = [0] * ((len(views)+NUM_DAYS-1) // NUM_DAYS)
         for i, v in enumerate(views):
             views_av[i//NUM_DAYS] += v
@@ -46,7 +46,7 @@ class WikiPageviews(models.Model):
         if min_views > 0:
             min_views = min_views * 2 // 3
         max_views = max(min_views+1, max_views)
-        html = '<div>'
+        html = '<div class="histogram">'
         start_ord = datetime.date(self.year, 1, 1).toordinal()
         for i, v in enumerate(views_av):
             title = "%s views between %s and %s" % (
@@ -54,10 +54,8 @@ class WikiPageviews(models.Model):
                 datetime.date.fromordinal(start_ord + i*NUM_DAYS),
                 datetime.date.fromordinal(start_ord + (i+1)*NUM_DAYS-1),
             )
-            html += '<span style="display: inline-block; position: relative; ' \
-                    'width:5px; height: 48px; margin-right: 1px; background: #79aec8;" ' \
-                    'title="%s">' % title
-            html += '<span style="display: block; height: %s%%; background: #eee">' % round(
+            html += '<span class="histogram-bin" title="%s">' % title
+            html += '<span class="histogram-value" style="height: %s%%;">' % round(
                         100. - (float(v) - min_views) / (max_views - min_views) * 100., 1)
             html += '</span></span>'
         html += '</div>'

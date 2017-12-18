@@ -1,0 +1,48 @@
+body {
+    font-family: ubuntu, arial;
+}
+
+.histogram-bin {
+    display: inline-block;
+    position: relative;
+    width: 5px;
+    height: 48px;
+    margin-right: 1px;
+    background: #79aec8;
+}
+
+.histogram-bin:hover {
+    background: #5a8da7;
+}
+
+.histogram {
+    white-space: nowrap;
+}
+
+.histogram-value {
+    display: block;
+    background: #eee;
+}
+
+.histogram-value:hover {
+    background: #d8d8d8;
+}
+
+table.result-table {
+    border: 1px solid black;
+}
+
+table.result-table thead td {
+    background: #f8f8f8;
+    border-bottom: 1px solid black;
+    padding: 4px;
+}
+
+table.result-table td {
+    border-right: 1px solid #aaa;
+    padding: 0px 5px;
+}
+
+table.result-table .number {
+    text-align: right;
+}

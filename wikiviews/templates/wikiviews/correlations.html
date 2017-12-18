@@ -14,16 +14,26 @@
             <option value="{{t.0}}" {% if current_transform == t.0 %}selected{% endif %}>{{ t.1 }}</option>
         {% endfor %}
     </select>
+
+    <label for="cb-compare">compare by: </label>
+    <select id="cb-compare" name="compare">
+        {% for t in comparisons %}
+            <option value="{{t.0}}" {% if current_compare == t.0 %}selected{% endif %}>{{ t.1 }}</option>
+        {% endfor %}
+    </select>
 </form>
 
 <hr/>
 
-<table style="border: 1px solid black;">
-    <tr>
-        <td>article</td>
-        <td>views per year</td>
-        <td>correlation</td>
-    </tr>
+<table class="result-table">
+    <thead>
+        <tr>
+            <td>article</td>
+            <td>views per year</td>
+            <td>{{ current_compare_name }}</td>
+            <td>views</td>
+        </tr>
+    </thead>
     {% for a in correlations %}
     <tr>
         <td style="max-width: 270px">
@@ -31,8 +41,8 @@
             (<a href="{{ a.corr_url }}" title="correlate from here">C</a>)
             {{ a.name }}
         </td>
-        <td>{{ a.count }}</td>
-        <td>{{ a.correlation }}</td>
+        <td class="number">{{ a.count }}</td>
+        <td class="number">{{ a.correlation }}</td>
         <!--<td><a href="{{ a.url }}" target="_blank">{{ a.url }}</a></td>-->
         <td>{{ a.views_decorator|safe }}</td>
     </tr>

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, print_function
 
 import numpy as np
+import scipy
 
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
@@ -16,29 +17,67 @@ def autocomplete_json(request):
     if not query:
         raise Http404
 
-    res = opensearch_and_store(query, limit=100)
+    if "w" in request.GET:
+        res = opensearch_and_store(query, limit=100)
+        return JsonResponse({
+            "items": [i["name"] for i in res[:20]]
+        })
+
+    qset = WikiPageviews.objects.filter(term__name__icontains=query)
+    items = qset.order_by("term__name").values_list("term__name")
+    items = [t[0] for t in items[:20]]
     return JsonResponse({
-        "items": [i["name"] for i in res[:20]]
+        "items": items
     })
 
 
 
 def correlation_view(request):
+    def _normalize(a):
+        m = np.linalg.norm(a)
+        if m:
+            return a / m
+        return a
+
+    WEEKDAYS = [datetime.date.fromordinal(datetime.date(2016, 1, 1).toordinal()+i).weekday() for i in range(366)]
+    def _weekday(a):
+        r = np.zeros(7)
+        for i, v in enumerate(a):
+            r[WEEKDAYS[i]] += v
+        return r
+
     TRANSFORMS = (
         ("", "none", None),
         ("grad", "np.gradient", lambda a: np.gradient(a)),
         ("diff", "np.diff", lambda a: np.diff(a)),
         ("fft", "np.fft", lambda a: np.real(np.fft.fft(a))[2:len(a)//2+1]),
-        ("clip", "clip mean+std", lambda a: np.clip(a, 0, np.mean(a)+np.std(a)))
+        ("clip", "clip mean+std", lambda a: np.clip(a, 0, np.mean(a)+np.std(a))),
+        ("weekday", "weekday", lambda a: _weekday(a))
+    )
+    COMPARISONS = (
+        ("corr", "correlation",
+            lambda x, y: np.corrcoef(x, y)[0][1],
+            lambda v: v <= -.3 or v >= .5,
+            lambda v: -v,
+        ),
+        ("ndist", "norm distance",
+            lambda x, y: np.linalg.norm(x-y) / np.sum(np.abs(x-y)),
+            lambda v: v < .5,
+            lambda v: v,
+        ),
     )
 
     art_name = request.GET.get("article")
     transform_name = request.GET.get("transform", "")
+    compare_name = request.GET.get("compare", "corr")
 
     transform = None
     if transform_name:
         trans = sorted(TRANSFORMS, key=lambda x: x[0] == transform_name)[-1]
         transform = trans[2]
+
+    compr = sorted(COMPARISONS, key=lambda x: x[0] == compare_name)[-1]
+
 
     term = None
     correlations = []
@@ -54,6 +93,8 @@ def correlation_view(request):
         a = views.views_per_day()
         if transform is not None:
             a = transform(a)
+        else:
+            a = np.array(a, dtype="float64")
         return a
 
     qset = WikiPageviews.objects.filter(term__name=art_name)
@@ -66,8 +107,8 @@ def correlation_view(request):
         qset = WikiPageviews.objects.all()
         for view in qset:
             comp_array = _get_array(view)
-            corr = np.corrcoef(base_array, comp_array)[0][1]
-            if corr <= -.3 or corr >= .5:
+            corr = compr[2](base_array, comp_array)
+            if compr[3](corr):
                 correlations.append({
                     "name": view.term.name,
                     "desc": view.term.description,
@@ -80,8 +121,11 @@ def correlation_view(request):
 
     ctx = {
         "term": term,
-        "correlations": sorted(correlations, key=lambda c: -c["correlation"])[:100],
+        "correlations": sorted(correlations, key=lambda c: compr[4](c["correlation"]))[:100],
         "transforms": TRANSFORMS,
+        "comparisons": COMPARISONS,
         "current_transform": transform_name,
+        "current_compare": compare_name,
+        "current_compare_name": compr[1],
     }
     return render(request, "wikiviews/correlations.html", ctx)

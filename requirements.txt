@@ -3,3 +3,4 @@ Django==1.11.7
 requests==2.18.4
 bokeh==0.12.4
 sklearn
+scipy==1.0.0
