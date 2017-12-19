@@ -6,6 +6,7 @@ import datetime
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import validate_comma_separated_integer_list
+from picklefield import PickledObjectField
 
 
 class WikiTerm(models.Model):
@@ -62,3 +63,48 @@ class WikiPageviews(models.Model):
         return html
     views_decorator.short_description = _("views")
     views_decorator.allow_tags = True
+
+
+class PickleCache(models.Model):
+    """Cache for picklable data"""
+
+    id = models.CharField(max_length=100, verbose_name=_("id"), unique=True, primary_key=True)
+    created = models.DateTimeField(verbose_name=_("created on"), auto_now=True)
+    data = PickledObjectField(verbose_name=_("headers"), default=None, blank=True, null=True)
+
+    @classmethod
+    def clear(cls, id):
+        qset = cls.objects.filter(id=id)
+        if qset.exists():
+            qset.delete()
+            return True
+        return False
+
+    @classmethod
+    def clear_like(cls, id):
+        qset = cls.objects.filter(id__icontains=id)
+        if qset.exists():
+            qset.delete()
+            return True
+        return False
+
+    @classmethod
+    def store(cls, id, data):
+        try:
+            o = cls.objects.get(id=id)
+            o.created = datetime.datetime.now()
+            o.data = data
+            o.save()
+        except cls.DoesNotExist:
+            cls.objects.create(
+                id=id,
+                data=data
+            )
+
+    @classmethod
+    def restore(cls, id):
+        try:
+            o = cls.objects.get(id=id)
+            return o.data
+        except cls.DoesNotExist:
+            return None

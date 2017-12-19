@@ -1,5 +1,6 @@
 # python 2.7
 Django==1.11.7
+django-picklefield==1.0.0
 requests==2.18.4
 bokeh==0.12.4
 sklearn
