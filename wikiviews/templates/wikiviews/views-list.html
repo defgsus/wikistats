@@ -9,8 +9,8 @@
     {% for v in views %}
     <tr>
         <td style="max-width: 270px">
-            (<a href="{{ a.url }}" target="_blank" title="{{ a.desc }}">W</a>)
-            (<a href="{{ a.corr_url }}" title="correlate from here">C</a>)
+            (<a href="{{ v.term.url }}" target="_blank" title="{{ v.term.description }}">W</a>)
+            (<a href="{{ v.corr_url }}" title="correlate from here">C</a>)
             {{ v.term.name }}
         </td>
         <td class="number">{{ v.count }}</td>

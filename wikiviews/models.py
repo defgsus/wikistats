@@ -6,6 +6,8 @@ import datetime
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import validate_comma_separated_integer_list
+from django.urls import reverse
+
 from picklefield import PickledObjectField
 
 
@@ -14,6 +16,9 @@ class WikiTerm(models.Model):
     name = models.CharField(verbose_name=_("name"), max_length=128)
     url = models.URLField(verbose_name=_("url"))
     description = models.TextField(verbose_name=_("description"))
+
+    def page_name(self):
+        return self.url.split("/wiki/")[1]
 
     def __unicode__(self):
         return self.name
@@ -30,6 +35,9 @@ class WikiPageviews(models.Model):
     count = models.IntegerField(verbose_name=_("count"))
     per_yearday = models.CharField(verbose_name=_("per year-day"), max_length=4096,
                                    validators=[validate_comma_separated_integer_list])
+
+    def correlation_url(self):
+        return "%s?article=%s" % (reverse("wikiviews:corr"), self.term.name)
 
     def views_per_day(self):
         return [int(x) for x in self.per_yearday.split(",")]

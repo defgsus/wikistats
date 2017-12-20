@@ -21,7 +21,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         starttime = datetime.datetime.now()
 
-        get_pageview_plot_data_cached("tsne", "weekday", "corr", clear_cache=True)
+        get_pageview_plot_data_cached("tsne", "", "euclid", clear_cache=True)
 
         endtime = datetime.datetime.now()
         print("TOOK %s" % (endtime - starttime))

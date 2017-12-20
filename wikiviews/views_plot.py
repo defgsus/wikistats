@@ -94,7 +94,7 @@ def get_pageview_plot_data(reduction_type, transform_type, distance_type):
 
 
 def get_pageview_plot_data_cached(reduction_type, transform_type, distance_type,
-                                  clear_cache=True):
+                                  clear_cache=False):
     cache_id = "pageview-plot-%s-%s-%s" % (reduction_type, transform_type, distance_type)
     if clear_cache:
         PickleCache.clear(cache_id)
@@ -113,9 +113,9 @@ def correlation_plot_view(request):
             r[WEEKDAYS[i]] += v
         return r
 
-    transform_type = request.GET.get("transform", "weekday")
-    distance_type = request.GET.get("distance", "corr")
-    reduction_type = request.GET.get("reduction", "pca")
+    transform_type = request.GET.get("transform", "")
+    distance_type = request.GET.get("distance", "euclid")
+    reduction_type = request.GET.get("reduction", "tsne")
 
     data = get_pageview_plot_data_cached(reduction_type, transform_type, distance_type)
 

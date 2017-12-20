@@ -30,7 +30,7 @@ class Command(BaseCommand):
 def update_pageviews(year, agent="user", project="de.wikipedia.org", access="all-access"):
     for term_pk, term_url in WikiTerm.objects.all().values_list("id", "url"):
         if not WikiPageviews.objects.filter(term=term_pk, year=year, agent=agent, project=project, access=access).exists():
-            term = term_url[term_url.rfind("/")+1:]
+            term = term_url.split("/wiki/")[1]
             views = get_pageviews_daily(year, term, project=project, access=access, agent=agent)
             count = sum(views)
             print("%s: %s" % (term, count))
