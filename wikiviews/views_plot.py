@@ -6,9 +6,11 @@ import scipy
 
 from django.shortcuts import render
 from django.http import JsonResponse, Http404
+from django.urls import reverse
 
 from .models import *
 from .plot_tools import get_scatter_plot_markup
+
 
 WEEKDAYS = [datetime.date.fromordinal(datetime.date(2016, 1, 1).toordinal() + i).weekday() for i in range(366)]
 
@@ -32,9 +34,24 @@ TRANSFORMS = {
     "weekday": ("weekday", lambda a: _weekday(a)),
 }
 
+SELECTION_JS = """
+    var indis = source.selected['1d'].indices;
+    indis = indis.map(function(i) { return source.data["pk"][i]; });
+    console.log(indis);
+    $.ajax({
+        url: "%(url)s", 
+        data: {ids: indis.slice(0,50).join(",")}
+    })
+    .done(function(data) {
+        //console.log(data);
+        $("#selection-table").html(data);
+    });
+    
+"""
+
 
 def get_pageview_plot_data(reduction_type, transform_type, distance_type):
-    all_pageviews = WikiPageviews.objects.filter(count__gt=0)[:1000]
+    all_pageviews = WikiPageviews.objects.filter(count__gt=0)#[:1000]
     all_values = list(all_pageviews.values_list("term__pk", "term__name", "count", "per_yearday"))
 
     ret = dict()
@@ -42,12 +59,14 @@ def get_pageview_plot_data(reduction_type, transform_type, distance_type):
     ret["name"] = [t[1] for t in all_values]
     ret["total"] = [t[2] for t in all_values]
 
-    view_data = np.zeros((len(all_values), 366))
+    view_data = None
     for y, datatup in enumerate(all_values):
         views = [int(i) for i in datatup[3].split(",")]
         if TRANSFORMS[transform_type][1]:
             views = TRANSFORMS[transform_type][1](views)
-        for i in range(366):
+        if view_data is None:
+            view_data = np.zeros((len(all_values), len(views)))
+        for i in range(len(views)):
             view_data[y][i] = views[i]
 
     from sklearn.decomposition import PCA, KernelPCA, FactorAnalysis, FastICA, LatentDirichletAllocation, NMF, IncrementalPCA
@@ -74,8 +93,11 @@ def get_pageview_plot_data(reduction_type, transform_type, distance_type):
     return ret
 
 
-def get_pageview_plot_data_cached(reduction_type, transform_type, distance_type):
+def get_pageview_plot_data_cached(reduction_type, transform_type, distance_type,
+                                  clear_cache=True):
     cache_id = "pageview-plot-%s-%s-%s" % (reduction_type, transform_type, distance_type)
+    if clear_cache:
+        PickleCache.clear(cache_id)
     data = PickleCache.restore(cache_id)
     if data is None:
         data = get_pageview_plot_data(reduction_type, transform_type, distance_type)
@@ -91,9 +113,9 @@ def correlation_plot_view(request):
             r[WEEKDAYS[i]] += v
         return r
 
-    transform_type = request.GET.get("transform", "")
+    transform_type = request.GET.get("transform", "weekday")
     distance_type = request.GET.get("distance", "corr")
-    reduction_type = request.GET.get("reduction", "tsne")
+    reduction_type = request.GET.get("reduction", "pca")
 
     data = get_pageview_plot_data_cached(reduction_type, transform_type, distance_type)
 
@@ -106,10 +128,10 @@ def correlation_plot_view(request):
         data,
         title="Wiki articles grouped by views 2016",
         width=800, height=600,
-        #box_select_code=jscode,
+        box_select_code=SELECTION_JS % {"url": reverse("wikiviews:views_list")},
     )
 
     ctx = {
-        "content": plot_markup,
+        "content": plot_markup + '<div id="selection-table"></div>',
     }
     return render(request, "wikiviews/base.html", ctx)

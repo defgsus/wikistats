@@ -1,0 +1,21 @@
+<table class="result-table">
+    <thead>
+        <tr>
+            <td>article</td>
+            <td>views per year</td>
+            <td>views</td>
+        </tr>
+    </thead>
+    {% for v in views %}
+    <tr>
+        <td style="max-width: 270px">
+            (<a href="{{ a.url }}" target="_blank" title="{{ a.desc }}">W</a>)
+            (<a href="{{ a.corr_url }}" title="correlate from here">C</a>)
+            {{ v.term.name }}
+        </td>
+        <td class="number">{{ v.count }}</td>
+        <!--<td><a href="{{ a.url }}" target="_blank">{{ a.url }}</a></td>-->
+        <td>{{ v.views_decorator|safe }}</td>
+    </tr>
+    {% endfor %}
+</table>
